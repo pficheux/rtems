@@ -658,6 +658,65 @@ Test avec KVM :
 $ kvm -kernel o-optimize/timer.exe -name RTEMS
 
 
+
+8/11/2025
+=========
+
+Test RTEMS 6 pour ECE (?)
+
+$ export RTEMS_BASE=/media/pierre/SAMSUNG_1TO_2/RTEMS
+
+1- Construction RSB (compilateur)
+
+$ git clone https://gitlab.rtems.org/rtems/tools/rtems-source-builder.git
+$ cd rtems-source-builder/
+$ git checkout 6
+$ ./source-builder/sb-check 
+$ cd rtems/
+$ ../source-builder/sb-set-builder --log=l-i386.txt --prefix=$RTEMS_PATH/rtems-i386 6/rtems-i386
+
+2- Construction BSP QEMU/x86
+
+$ cd $RTEMS_BASE
+$ git clone https://gitlab.rtems.org/rtems/rtos/rtems.git rtems_git
+$ cd rtems_git/
+$ git checkout 6  # RTEMS 6
+
+Configuration, voir https://docs.rtems.org/docs/main/user/bld/
+
+$ cat >> config.ini
+[i386/pc386]
+RTEMS_POSIX_API=True
+^D
+
+-> voir description de la variable dans https://docs.rtems.org/docs/6.1/posix-users.pdf
+
+Ajouter le compilateur au path !!
+
+$ export PATH=$PATH:$RTEMS_BASE/rtems-i386/bin
+
+$ ./waf configure --prefix=$RTEMS_BASE/rtems/6
+$ ./waf 
+$ ./waf install
+
+3- Test d'application (POSIX)
+
+$ export RTEMS_MAKEFILE_PATH=$RTEMS_BASE/rtems/6/i386-rtems6/pc386
+$ cd <path>/exemples/POSIX/helloworld
+$ make
+
+$ qemu-system-i386 -kernel o-optimize/helloworld.exe
+
+Idem pour timer !
+
+-> Création set_env_i386.sh (à "sourcer")
+
+#!/bin/sh
+
+export PATH=$PATH:$RTEMS_BASE/rtems-i386/bin 
+export RTEMS_MAKEFILE_PATH=$RTEMS_BASE/rtems/6/i386-rtems6/pc386
+1
+
 TODO
 ====
 
